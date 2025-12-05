@@ -1,9 +1,14 @@
-import { Task } from '../types/task';
+import { Task } from "../types/task";
+import { AuthUser } from "../types/auth";
 
 type TaskListProps = {
   tasks: Task[];
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
+};
+
+const getInitials = (user: AuthUser): string => {
+  return user.firstName.slice(0, 1) + user.lastName.slice(0, 1);
 };
 
 export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
@@ -17,7 +22,9 @@ export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
         <article key={task.id} className="task-card">
           <header className="task-card__header">
             <h3>{task.title}</h3>
-            <span className={`status status-${task.status}`}>{task.status.replace('_', ' ')}</span>
+            <span className={`status status-${task.status}`}>
+              {task.status.replace("_", " ")}
+            </span>
           </header>
           <p>{task.description}</p>
           <dl>
@@ -29,7 +36,17 @@ export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
             </div>
             <div>
               <dt>Assignees</dt>
-              <dd>{task.assignees.map((assignee) => assignee.firstName).join(', ') || '—'}</dd>
+              <dd>
+                {!!task.assignees.length && (
+                  <div className="avatar-group">
+                    {task.assignees.map((assignee) => (
+                      <div key={assignee.id} className="avatar">
+                        {getInitials(assignee)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </dd>
             </div>
           </dl>
           {(onEdit || onDelete) && (
@@ -40,7 +57,11 @@ export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
                 </button>
               )}
               {onDelete && (
-                <button type="button" onClick={() => onDelete(task)} className="danger">
+                <button
+                  type="button"
+                  onClick={() => onDelete(task)}
+                  className="danger"
+                >
                   Delete
                 </button>
               )}
@@ -51,4 +72,3 @@ export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
     </div>
   );
 };
-

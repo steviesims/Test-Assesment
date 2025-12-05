@@ -329,6 +329,24 @@ button.dropdown-trigger {
     color: #fff;
 }
 
+.avatar-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #2563eb;
+    color: white;
+    user-select: none;
+}
+
 .empty-state {
     color: #64748b;
 }
