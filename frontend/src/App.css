@@ -359,6 +359,11 @@ button.dropdown-trigger {
     gap: 0.75rem;
 }
 
+.my-task {
+    border-left: 4px solid #2563eb;
+    background: #f0f9ff;
+}
+
 .task-card__header {
     display: flex;
     align-items: center;

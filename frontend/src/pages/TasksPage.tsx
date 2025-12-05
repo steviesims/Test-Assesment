@@ -89,6 +89,7 @@ export const TasksPage = () => {
         ) : (
           <TaskList
             tasks={filteredTasks}
+            currentUserId={user?.id}
             onEdit={canManage ? (task) => setEditingTask(task) : undefined}
             onDelete={
               canManage ? (task) => deleteMutation.mutate(task.id) : undefined
