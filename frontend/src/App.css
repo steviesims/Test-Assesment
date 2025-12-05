@@ -207,15 +207,19 @@
     gap: 0.5rem;
 }
 
-.task-form input,
-.task-form textarea,
-.task-form select {
+.tasks-page .form-group {
+    margin-bottom: 20px;
+}
+
+input,
+textarea,
+select {
     padding: 0.6rem 0.75rem;
     border-radius: 6px;
     border: 1px solid #d1d5db;
 }
 
-.task-form textarea {
+textarea {
     min-height: 100px;
 }
 
