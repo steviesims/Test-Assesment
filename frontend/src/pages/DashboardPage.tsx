@@ -4,7 +4,7 @@ import { Carousel } from "../components/Carousel";
 import { fetchTasks } from "../api/tasks";
 import { uploadFile } from "../api/uploads";
 import { CarouselItem } from "../types/dashboard";
-import { DEFAULT_PAGE_NUMBER, TASK_LIMITS } from "../constants";
+import { PAGE_START, TASK_LIMITS } from "../constants";
 
 export const DashboardPage = () => {
   const {
@@ -13,7 +13,7 @@ export const DashboardPage = () => {
     isLoading,
   } = useQuery({
     queryKey: ["tasks"],
-    queryFn: () => fetchTasks(DEFAULT_PAGE_NUMBER, TASK_LIMITS),
+    queryFn: () => fetchTasks({ page: PAGE_START, limit: TASK_LIMITS }),
   });
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 

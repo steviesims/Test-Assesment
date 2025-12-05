@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, deleteTask, fetchTasks, updateTask } from "../api/tasks";
 import { Task, TaskInput, TaskStatus } from "../types/task";
@@ -6,6 +6,7 @@ import { statusOptions, TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { useAuth } from "../hooks/useAuth";
 import { fetchUsers } from "../api/users";
+import { PAGE_START, PAGE_SIZE } from "../constants";
 
 export const TasksPage = () => {
   const queryClient = useQueryClient();
@@ -14,11 +15,30 @@ export const TasksPage = () => {
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(PAGE_START);
 
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: fetchTasks,
+  const { data: tasksResponse, isLoading } = useQuery({
+    queryKey: [
+      "tasks",
+      currentPage,
+      PAGE_SIZE,
+      searchQuery,
+      selectedStatuses,
+      selectedAssigneeId,
+    ],
+    queryFn: () =>
+      fetchTasks({
+        page: currentPage,
+        limit: PAGE_SIZE,
+        search: searchQuery || undefined,
+        status:
+          selectedStatuses.length > 0 ? selectedStatuses.join(",") : undefined,
+        assigneeId: selectedAssigneeId || undefined,
+      }),
   });
+
+  const tasks = tasksResponse?.data || [];
+  const pagination = tasksResponse?.pagination;
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
@@ -57,35 +77,12 @@ export const TasksPage = () => {
     (role) => role === "admin" || role === "manager"
   );
 
-  const filteredTasks = useMemo(() => {
-    let filtered = tasks;
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (task) =>
-          task.title.toLowerCase().includes(query) ||
-          task.description?.toLowerCase().includes(query)
-      );
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
     }
-
-    // Filter by status
-    if (selectedStatuses.length > 0) {
-      filtered = filtered.filter((task) =>
-        selectedStatuses.includes(task.status)
-      );
-    }
-
-    // Filter by assignee
-    if (selectedAssigneeId) {
-      filtered = filtered.filter((task) =>
-        task.assignees.some((assignee) => assignee.id === selectedAssigneeId)
-      );
-    }
-
-    return filtered;
-  }, [tasks, searchQuery, selectedStatuses, selectedAssigneeId]);
+  }, [searchQuery, selectedStatuses, selectedAssigneeId]);
 
   return (
     <div className="tasks-page">
@@ -145,14 +142,51 @@ export const TasksPage = () => {
         {isLoading ? (
           <p>Loading tasks…</p>
         ) : (
-          <TaskList
-            tasks={filteredTasks}
-            currentUserId={user?.id}
-            onEdit={canManage ? (task) => setEditingTask(task) : undefined}
-            onDelete={
-              canManage ? (task) => deleteMutation.mutate(task.id) : undefined
-            }
-          />
+          <>
+            <TaskList
+              tasks={tasks}
+              currentUserId={user?.id}
+              onEdit={canManage ? (task) => setEditingTask(task) : undefined}
+              onDelete={
+                canManage ? (task) => deleteMutation.mutate(task.id) : undefined
+              }
+            />
+            {pagination && (
+              <div className="pagination">
+                <div className="pagination-info">
+                  Showing{" "}
+                  {tasks.length > 0
+                    ? (pagination.currentPage - 1) * PAGE_SIZE + 1
+                    : 0}
+                  -{" "}
+                  {Math.min(
+                    pagination.currentPage * PAGE_SIZE,
+                    pagination.totalCount
+                  )}{" "}
+                  of {pagination.totalCount} tasks
+                </div>
+                <div className="pagination-controls">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={!pagination.hasPreviousPage}
+                  >
+                    Previous
+                  </button>
+                  <span className="pagination-pages">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    disabled={!pagination.hasNextPage}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
       {canManage && (
