@@ -15,6 +15,7 @@ export const TasksPage = () => {
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
+  const [showMyTasks, setShowMyTasks] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(PAGE_START);
   const [sortBy, setSortBy] = useState<SortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
@@ -27,6 +28,7 @@ export const TasksPage = () => {
       searchQuery,
       selectedStatuses,
       selectedAssigneeId,
+      showMyTasks,
       sortBy,
       sortOrder,
     ],
@@ -38,6 +40,7 @@ export const TasksPage = () => {
         status:
           selectedStatuses.length > 0 ? selectedStatuses.join(",") : undefined,
         assigneeId: selectedAssigneeId || undefined,
+        myTasks: showMyTasks || undefined,
         sortBy,
         sortOrder,
       }),
@@ -88,7 +91,7 @@ export const TasksPage = () => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [searchQuery, selectedStatuses, selectedAssigneeId]);
+  }, [searchQuery, selectedStatuses, selectedAssigneeId, showMyTasks]);
 
   return (
     <div className="tasks-page">
@@ -145,6 +148,16 @@ export const TasksPage = () => {
             </select>
           </div>
         )}
+        <div className="form-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={showMyTasks}
+              onChange={(e) => setShowMyTasks(e.target.checked)}
+            />
+            <span>My Tasks Only</span>
+          </label>
+        </div>
         <div className="form-group">
           <label htmlFor="sort-by">Sort By</label>
           <select
