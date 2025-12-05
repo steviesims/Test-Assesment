@@ -51,6 +51,7 @@ export type FetchTasksParams = {
   search?: string;
   status?: string;
   assigneeId?: string;
+  myTasks?: boolean;
   sortBy?: SortField;
   sortOrder?: SortOrder;
 };

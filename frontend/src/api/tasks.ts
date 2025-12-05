@@ -7,13 +7,14 @@ import {
 } from '../types/task';
 
 export const fetchTasks = async (params: FetchTasksParams = {}): Promise<PaginatedResponse<Task>> => {
-  const { page = 1, limit = 10, search, status, assigneeId, sortBy, sortOrder } = params;
+  const { page = 1, limit = 10, search, status, assigneeId, myTasks, sortBy, sortOrder } = params;
 
-  const queryParams: Record<string, string | number> = { page, limit };
+  const queryParams: Record<string, string | number | boolean> = { page, limit };
 
   if (search) queryParams.search = search;
   if (status) queryParams.status = status;
   if (assigneeId) queryParams.assigneeId = assigneeId;
+  if (myTasks !== undefined) queryParams.myTasks = myTasks;
   if (sortBy) queryParams.sortBy = sortBy;
   if (sortOrder) queryParams.sortOrder = sortOrder;
 
