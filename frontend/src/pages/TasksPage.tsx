@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, deleteTask, fetchTasks, updateTask } from "../api/tasks";
-import { Task, TaskInput, TaskStatus } from "../types/task";
+import { Task, TaskInput, TaskStatus, SortField, SortOrder } from "../types/task";
 import { statusOptions, TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { useAuth } from "../hooks/useAuth";
@@ -16,6 +16,8 @@ export const TasksPage = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(PAGE_START);
+  const [sortBy, setSortBy] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
 
   const { data: tasksResponse, isLoading } = useQuery({
     queryKey: [
@@ -25,6 +27,8 @@ export const TasksPage = () => {
       searchQuery,
       selectedStatuses,
       selectedAssigneeId,
+      sortBy,
+      sortOrder,
     ],
     queryFn: () =>
       fetchTasks({
@@ -34,6 +38,8 @@ export const TasksPage = () => {
         status:
           selectedStatuses.length > 0 ? selectedStatuses.join(",") : undefined,
         assigneeId: selectedAssigneeId || undefined,
+        sortBy,
+        sortOrder,
       }),
   });
 
@@ -139,6 +145,29 @@ export const TasksPage = () => {
             </select>
           </div>
         )}
+        <div className="form-group">
+          <label htmlFor="sort-by">Sort By</label>
+          <select
+            id="sort-by"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortField)}
+          >
+            <option value="createdAt">Date Created</option>
+            <option value="title">Title</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="sort-order">Sort Order</label>
+          <select
+            id="sort-order"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+          >
+            <option value="DESC">Descending</option>
+            <option value="ASC">Ascending</option>
+          </select>
+        </div>
         {isLoading ? (
           <p>Loading tasks…</p>
         ) : (
