@@ -120,10 +120,9 @@ export const TasksPage = () => {
     (role) => role === "admin" || role === "manager"
   );
 
-  // Reset to page 1 when filters change
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
+    if (currentPage !== PAGE_START) {
+      setCurrentPage(PAGE_START);
     }
   }, [searchQuery, selectedStatuses, selectedAssigneeId, showMyTasks]);
 
