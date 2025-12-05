@@ -61,115 +61,151 @@ The frontend expects the backend at `http://localhost:4000/api`. Adjust `VITE_AP
 Complete **3 out of 5** challenges below. Focus on clean code, proper error handling, and thoughtful user experience.
 
 ### Challenge 1: Task Assignment UI ⭐
+
 **Difficulty: Medium**
 
 The backend already supports assigning users to tasks via `assigneeIds`, but the frontend UI is missing.
 
 **Requirements:**
-- Add a multi-select dropdown or autocomplete component to the task form
-- Fetch and display list of users from the backend (create a users API endpoint if needed)
-- Show assigned users on task cards in the task list
-- Allow filtering tasks by assignee
-- Display assignee avatars/initials on task cards
+
+- [x] Add a multi-select dropdown or autocomplete component to the task form
+- [x] Fetch and display list of users from the backend (create a users API endpoint if needed)
+- [x] Show assigned users on task cards in the task list
+- [x] Allow filtering tasks by assignee
+- [x] Display assignee avatars/initials on task cards
 
 **Bonus:**
-- Search/filter users in the assignee selector
-- Show user roles next to names
-- Add visual indicators for tasks assigned to the current user
+
+- [x] Search/filter users in the assignee selector
+- [x] Show user roles next to names
+- [x] Add visual indicators for tasks assigned to the current user
 
 ---
 
 ### Challenge 2: Task Filtering, Search & Pagination ⭐
+
 **Difficulty: Medium**
 
 Enhance the task list with better data management capabilities.
 
 **Requirements:**
-- Add search functionality (filter by title and description)
-- Add status filter (todo, in_progress, done) with ability to select multiple
-- Implement pagination on backend (limit, offset, or cursor-based)
-- Add pagination controls on frontend (page numbers, prev/next buttons)
-- Show total task count and current page info
-- Persist filter/search state in URL query parameters
+
+- [x] Add search functionality (filter by title and description)
+- [x] Add status filter (todo, in_progress, done) with ability to select multiple
+- [x] Implement pagination on backend (limit, offset, or cursor-based)
+- [x] Add pagination controls on frontend (page numbers, prev/next buttons)
+- [x] Show total task count and current page info
+- [x] Persist filter/search state in URL query parameters
 
 **Bonus:**
-- Add sorting options (by date created, title, status)
-- Add "My Tasks" filter (tasks where user is owner or assignee)
-- Remember filter preferences in localStorage
+
+- [x] Add sorting options (by date created, title, status)
+- [x] Add "My Tasks" filter (tasks where user is owner or assignee)
+- [x] Remember filter preferences in localStorage
 
 ---
 
 ### Challenge 3: Enhanced RBAC & Task Permissions
+
 **Difficulty: Medium-Hard**
 
 Implement proper role-based access control for task operations.
 
 **Requirements:**
-- **Backend:** Add permission checks in task controller:
-  - Regular users can only edit/delete tasks they own
-  - Managers can edit any task but only delete their own
-  - Admins have full access (edit/delete any task)
-- **Backend:** Add middleware or helper function to check permissions
-- **Frontend:** Hide edit/delete buttons based on user permissions
-- **Frontend:** Show appropriate error messages when permission denied
-- Add unit tests or integration tests for permission logic
+
+- [x] **Backend:** Add permission checks in task controller:
+  - [x] Regular users can only edit/delete tasks they own
+  - [x] Managers can edit any task but only delete their own
+  - [x] Admins have full access (edit/delete any task)
+- [x] **Backend:** Add middleware or helper function to check permissions
+- [x] **Frontend:** Hide edit/delete buttons based on user permissions
+- [x] **Frontend:** Show appropriate error messages when permission denied
+- [x] Add unit tests or integration tests for permission logic
 
 **Bonus:**
-- Add audit logging for permission-denied attempts
-- Create a permissions matrix documentation
-- Add role-based task visibility (users only see tasks they're involved in)
+
+- [ ] Add audit logging for permission-denied attempts
+- [x] Create a permissions matrix documentation
+- [x] Add role-based task visibility (users only see tasks they're involved in)
 
 ---
 
 ### Challenge 4: Task Detail View & Comments
+
 **Difficulty: Medium**
 
 Create a dedicated page for viewing and managing individual tasks.
 
 **Requirements:**
-- Create a new route `/tasks/:id` with a task detail page
-- Display all task information (title, description, status, owner, assignees, attachments)
-- Add a comments/notes section where users can:
-  - Add comments to tasks
-  - View comment history with timestamps and authors
-  - Edit/delete their own comments
-- Backend: Create comments entity and API endpoints (CRUD operations)
-- Add navigation from task list to detail view
-- Show task creation and update timestamps
+
+- [ ] Create a new route `/tasks/:id` with a task detail page
+- [ ] Display all task information (title, description, status, owner, assignees, attachments)
+- [ ] Add a comments/notes section where users can:
+  - [ ] Add comments to tasks
+  - [ ] View comment history with timestamps and authors
+  - [ ] Edit/delete their own comments
+- [ ] Backend: Create comments entity and API endpoints (CRUD operations)
+- [ ] Add navigation from task list to detail view
+- [ ] Show task creation and update timestamps
 
 **Bonus:**
-- Add @mention functionality in comments
-- Show comment notifications
-- Add rich text formatting for comments
-- Display task activity timeline
+
+- [ ] Add @mention functionality in comments
+- [ ] Show comment notifications
+- [ ] Add rich text formatting for comments
+- [ ] Display task activity timeline
 
 ---
 
 ### Challenge 5: Input Validation & Error Handling
+
 **Difficulty: Medium**
 
 Improve validation and error handling throughout the application.
 
 **Requirements:**
-- **Backend:** Add comprehensive validation using `class-validator`:
-  - Email format validation for registration/login
-  - Password strength requirements (min length, complexity)
-  - Task title/description length limits
-  - File upload validation (size, type, count)
-- **Backend:** Create custom validation decorators where appropriate
-- **Backend:** Return detailed, user-friendly error messages
-- **Frontend:** Display validation errors inline in forms
-- **Frontend:** Show loading states and handle network errors gracefully
-- **Frontend:** Add form field validation before submission
-- Handle edge cases: duplicate emails, invalid IDs, missing required fields
+
+- [ ] **Backend:** Add comprehensive validation using `class-validator`:
+  - [ ] Email format validation for registration/login
+  - [ ] Password strength requirements (min length, complexity)
+  - [ ] Task title/description length limits
+  - [ ] File upload validation (size, type, count)
+- [ ] **Backend:** Create custom validation decorators where appropriate
+- [ ] **Backend:** Return detailed, user-friendly error messages
+- [ ] **Frontend:** Display validation errors inline in forms
+- [ ] **Frontend:** Show loading states and handle network errors gracefully
+- [ ] **Frontend:** Add form field validation before submission
+- [ ] Handle edge cases: duplicate emails, invalid IDs, missing required fields
 
 **Bonus:**
-- Add request rate limiting middleware
-- Implement client-side debouncing for search inputs
-- Add retry logic for failed API requests
-- Create a centralized error handling system
+
+- [ ] Add request rate limiting middleware
+- [ ] Implement client-side debouncing for search inputs
+- [ ] Add retry logic for failed API requests
+- [ ] Create a centralized error handling system
 
 ---
+
+## Note
+
+### Permission Matrix Documentation
+
+| Operation           | Admin | Manager | Regular User |
+| ------------------- | ----- | ------- | ------------ |
+| **List All Tasks**  | ✅    | ✅      | ❌           |
+| **List Own Tasks**  | ✅    | ✅      | ✅           |
+| **Edit Any Task**   | ✅    | ✅      | ❌           |
+| **Edit Own Task**   | ✅    | ✅      | ✅           |
+| **Delete Any Task** | ✅    | ❌      | ❌           |
+| **Delete Own Task** | ✅    | ✅      | ✅           |
+| **Register**        | ✅    | ✅      | ✅           |
+| **Login**           | ✅    | ✅      | ✅           |
+
+### What I added additional setup required
+
+For the mock data, I populated the SQLite database using the migration [script](./backend/migration/sqlite-seed.sql).
+
+For unit and integration testing, I set up testing environments for both the frontend and backend. On the frontend, I configured Vitest, and on the backend, I set up a test environment using ts-jest.
 
 ## Submission Guidelines
 
@@ -182,6 +218,6 @@ After completing your challenges:
    - We will review your submission and get back to you
 
 **Important Notes:**
+
 - **Quality over quantity**: It's better to complete fewer challenges well than many challenges poorly. Focus on demonstrating your understanding of the stack and best practices.
 - **No AI Tools**: Please do not use AI tools like ChatGPT or Copilot for this assessment. We want to evaluate your own coding abilities and problem-solving skills.
-
