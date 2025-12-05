@@ -1,22 +1,21 @@
 import { apiClient } from './client';
-import { Task, TaskInput, PaginatedResponse } from '../types/task';
-
-export type FetchTasksParams = {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-  assigneeId?: string;
-};
+import {
+  Task,
+  TaskInput,
+  PaginatedResponse,
+  FetchTasksParams
+} from '../types/task';
 
 export const fetchTasks = async (params: FetchTasksParams = {}): Promise<PaginatedResponse<Task>> => {
-  const { page = 1, limit = 10, search, status, assigneeId } = params;
+  const { page = 1, limit = 10, search, status, assigneeId, sortBy, sortOrder } = params;
 
   const queryParams: Record<string, string | number> = { page, limit };
 
   if (search) queryParams.search = search;
   if (status) queryParams.status = status;
   if (assigneeId) queryParams.assigneeId = assigneeId;
+  if (sortBy) queryParams.sortBy = sortBy;
+  if (sortOrder) queryParams.sortOrder = sortOrder;
 
   const { data } = await apiClient.get<PaginatedResponse<Task>>('/tasks', {
     params: queryParams

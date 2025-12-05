@@ -42,3 +42,16 @@ export type PaginatedResponse<T> = {
   pagination: PaginationMeta;
 };
 
+export type SortField = 'createdAt' | 'title' | 'status';
+export type SortOrder = 'ASC' | 'DESC';
+
+export type FetchTasksParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  assigneeId?: string;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
+};
+
