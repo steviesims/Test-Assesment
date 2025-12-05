@@ -1,6 +1,6 @@
-import { AuthUser } from './auth';
+import { AuthUser } from "./auth";
 
-export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskStatus = "todo" | "in_progress" | "done";
 
 export type TaskAttachment = {
   id: string;
@@ -42,8 +42,8 @@ export type PaginatedResponse<T> = {
   pagination: PaginationMeta;
 };
 
-export type SortField = 'createdAt' | 'title' | 'status';
-export type SortOrder = 'ASC' | 'DESC';
+export type SortField = "createdAt" | "title" | "status";
+export type SortOrder = "ASC" | "DESC";
 
 export type FetchTasksParams = {
   page?: number;
@@ -56,3 +56,11 @@ export type FetchTasksParams = {
   sortOrder?: SortOrder;
 };
 
+export type TaskFilterOptions = {
+  query?: string;
+  status?: TaskStatus[];
+  assigneeIds?: string;
+  showMyTask?: boolean;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
+};
