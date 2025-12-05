@@ -1,14 +1,10 @@
+import { getInitials } from "../helpers";
 import { Task } from "../types/task";
-import { AuthUser } from "../types/auth";
 
 type TaskListProps = {
   tasks: Task[];
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
-};
-
-const getInitials = (user: AuthUser): string => {
-  return user.firstName.slice(0, 1) + user.lastName.slice(0, 1);
 };
 
 export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
@@ -39,9 +35,9 @@ export const TaskList = ({ tasks, onEdit, onDelete }: TaskListProps) => {
               <dd>
                 {!!task.assignees.length && (
                   <div className="avatar-group">
-                    {task.assignees.map((assignee) => (
-                      <div key={assignee.id} className="avatar">
-                        {getInitials(assignee)}
+                    {task.assignees.map(({ id, firstName, lastName }) => (
+                      <div key={id} className="avatar">
+                        {getInitials(firstName, lastName)}
                       </div>
                     ))}
                   </div>

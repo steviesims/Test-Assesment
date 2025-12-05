@@ -118,15 +118,12 @@ export const TaskForm = ({
       <div className="form-group">
         <label htmlFor="task-assignees">Assignees</label>
 
-        {selectedUsers.length > 0 && (
-          <div id="task-assignees" className="assignee-list-container">
-            {selectedUsers.map(({ id, firstName, lastName }, idx) => (
-              <span key={id}>
-                <span>
-                  {firstName} {lastName}
-                </span>
-                {idx < selectedUsers.length - 1 && <span>, </span>}
-              </span>
+        {!!selectedUsers.length && (
+          <div id="task-assignees" className="avatar-group">
+            {selectedUsers.map(({ id, firstName, lastName }) => (
+              <div key={id} className="avatar">
+                {getInitials(firstName, lastName)}
+              </div>
             ))}
           </div>
         )}
