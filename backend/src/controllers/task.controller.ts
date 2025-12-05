@@ -13,13 +13,40 @@ export class TaskController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
-      const totalCount = await this.taskRepository.count();
 
-      const tasks = await this.taskRepository.find({
-        skip: offset,
-        take: limit,
-        order: { createdAt: "DESC" },
-      });
+      const search = req.query.search as string;
+      const status = req.query.status as string;
+      const assigneeId = req.query.assigneeId as string;
+
+      const queryBuilder = this.taskRepository
+        .createQueryBuilder("task")
+        .leftJoinAndSelect("task.owner", "owner")
+        .leftJoinAndSelect("task.assignees", "assignees")
+        .leftJoinAndSelect("task.attachments", "attachments");
+
+      if (search) {
+        queryBuilder.andWhere(
+          "(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))",
+          { search: `%${search}%` }
+        );
+      }
+
+      if (status) {
+        const statuses = status.split(",");
+        queryBuilder.andWhere("task.status IN (:...statuses)", { statuses });
+      }
+
+      if (assigneeId) {
+        queryBuilder.andWhere("assignees.id = :assigneeId", { assigneeId });
+      }
+
+      const totalCount = await queryBuilder.getCount();
+
+      const tasks = await queryBuilder
+        .orderBy("task.createdAt", "DESC")
+        .skip(offset)
+        .take(limit)
+        .getMany();
 
       const totalPages = Math.ceil(totalCount / limit);
       const hasNextPage = page < totalPages;
