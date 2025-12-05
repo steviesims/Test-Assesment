@@ -12,6 +12,7 @@ export const TasksPage = () => {
   const { user } = useAuth();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks"],
@@ -56,16 +57,42 @@ export const TasksPage = () => {
   );
 
   const filteredTasks = useMemo(() => {
-    if (!selectedAssigneeId) return tasks;
-    return tasks.filter((task) =>
-      task.assignees.some((assignee) => assignee.id === selectedAssigneeId)
-    );
-  }, [tasks, selectedAssigneeId]);
+    let filtered = tasks;
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (task) =>
+          task.title.toLowerCase().includes(query) ||
+          task.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by assignee
+    if (selectedAssigneeId) {
+      filtered = filtered.filter((task) =>
+        task.assignees.some((assignee) => assignee.id === selectedAssigneeId)
+      );
+    }
+
+    return filtered;
+  }, [tasks, searchQuery, selectedAssigneeId]);
 
   return (
     <div className="tasks-page">
       <section className="tasks-section">
         <h2>Tasks</h2>
+        <div className="form-group">
+          <label htmlFor="task-search">Search Tasks</label>
+          <input
+            id="task-search"
+            type="text"
+            placeholder="Search by title or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         {!!isLoadingUsers && <div className="form-group">Loading Users</div>}
         {!isLoadingUsers && (
           <div className="form-group">
