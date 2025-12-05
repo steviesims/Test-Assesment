@@ -124,15 +124,43 @@ export class TaskController {
   update = async (req: Request, res: Response) => {
     const taskId = req.params.id;
     const { title, description, status, assigneeIds = [] } = req.body;
+    const userId = req.user?.userId;
 
     try {
       if (!taskId) {
         return res.status(400).json({ message: "Task id is required" });
       }
 
-      const task = await this.taskRepository.findOne({ where: { id: taskId } });
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const task = await this.taskRepository.findOne({
+        where: { id: taskId },
+        relations: ["owner"],
+      });
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ["roles"],
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const userRoles = user.roles.map((role) => role.name);
+      const isAdmin = userRoles.includes("admin");
+      const isManager = userRoles.includes("manager");
+      const isOwner = task.owner.id === userId;
+
+      if (!isAdmin && !isManager && !isOwner) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to edit this task" });
       }
 
       if (title !== undefined) task.title = title;
@@ -154,15 +182,42 @@ export class TaskController {
 
   remove = async (req: Request, res: Response) => {
     const taskId = req.params.id;
+    const userId = req.user?.userId;
 
     try {
       if (!taskId) {
         return res.status(400).json({ message: "Task id is required" });
       }
 
-      const task = await this.taskRepository.findOne({ where: { id: taskId } });
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const task = await this.taskRepository.findOne({
+        where: { id: taskId },
+        relations: ["owner"],
+      });
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ["roles"],
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const userRoles = user.roles.map((role) => role.name);
+      const isAdmin = userRoles.includes("admin");
+      const isOwner = task.owner.id === userId;
+
+      if (!isAdmin && !isOwner) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to delete this task" });
       }
 
       await this.taskRepository.remove(task);
