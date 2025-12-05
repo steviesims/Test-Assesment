@@ -1,16 +1,18 @@
-import { getInitials } from "../helpers";
+import { getInitials } from "../utils/helpers";
 import { Task } from "../types/task";
+import { AuthUser } from "../types/auth";
+import { canEditTask, canDeleteTask } from "../utils/permissions";
 
 type TaskListProps = {
   tasks: Task[];
-  currentUserId?: string;
+  currentUser: AuthUser | null;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
 };
 
 export const TaskList = ({
   tasks,
-  currentUserId,
+  currentUser,
   onEdit,
   onDelete,
 }: TaskListProps) => {
@@ -22,8 +24,11 @@ export const TaskList = ({
     <div className="task-list">
       {tasks.map((task) => {
         const isAssignedToCurrentUser =
-          currentUserId &&
-          task.assignees.some((assignee) => assignee.id === currentUserId);
+          currentUser &&
+          task.assignees.some((assignee) => assignee.id === currentUser.id);
+
+        const canEdit = canEditTask(task, currentUser);
+        const canDelete = canDeleteTask(task, currentUser);
 
         return (
           <article
@@ -59,14 +64,14 @@ export const TaskList = ({
                 </dd>
               </div>
             </dl>
-            {(onEdit || onDelete) && (
+            {(canEdit || canDelete) && (
               <footer className="task-card__actions">
-                {onEdit && (
+                {canEdit && onEdit && (
                   <button type="button" onClick={() => onEdit(task)}>
                     Edit
                   </button>
                 )}
-                {onDelete && (
+                {canDelete && onDelete && (
                   <button
                     type="button"
                     onClick={() => onDelete(task)}
