@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { TaskInput, TaskStatus } from "../types/task";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUsers } from "../api/users";
+import { getInitials } from "../helpers";
 
 type TaskFormProps = {
   initialValue?: TaskInput;
