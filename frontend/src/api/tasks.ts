@@ -1,9 +1,25 @@
 import { apiClient } from './client';
 import { Task, TaskInput, PaginatedResponse } from '../types/task';
 
-export const fetchTasks = async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<Task>> => {
+export type FetchTasksParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  assigneeId?: string;
+};
+
+export const fetchTasks = async (params: FetchTasksParams = {}): Promise<PaginatedResponse<Task>> => {
+  const { page = 1, limit = 10, search, status, assigneeId } = params;
+
+  const queryParams: Record<string, string | number> = { page, limit };
+
+  if (search) queryParams.search = search;
+  if (status) queryParams.status = status;
+  if (assigneeId) queryParams.assigneeId = assigneeId;
+
   const { data } = await apiClient.get<PaginatedResponse<Task>>('/tasks', {
-    params: { page, limit }
+    params: queryParams
   });
   return data;
 };
