@@ -159,14 +159,28 @@ export const TaskForm = ({
                   />
                 </div>
                 {!!filteredUsers.length &&
-                  filteredUsers.map((user) => (
-                    <label key={user.id} className="dropdown-item">
+                  filteredUsers.map(({ id, firstName, lastName, roles }) => (
+                    <label key={id} className="dropdown-item">
                       <input
                         type="checkbox"
-                        checked={form.assigneeIds?.includes(user.id) ?? false}
-                        onChange={() => handleAssigneeToggle(user.id)}
+                        checked={form.assigneeIds?.includes(id) ?? false}
+                        onChange={() => handleAssigneeToggle(id)}
                       />
-                      {user.firstName} {user.lastName} - {user.email}
+                      <div className="user-info">
+                        <div className="user-name">
+                          {firstName} {lastName}
+                        </div>
+                        <div className="user-meta">
+                          {roles?.length > 0 && (
+                            <>
+                              <span className="user-separator">•</span>
+                              <span className="user-roles">
+                                {roles[0]["name"]}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </label>
                   ))}
                 {!filteredUsers.length && (

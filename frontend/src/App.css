@@ -272,13 +272,61 @@ button.dropdown-trigger {
     outline: none;
 }
 
+.role-info {
+    padding: 0.5rem 0.75rem;
+    background: #eff6ff;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.75rem;
+    color: #1e40af;
+    font-weight: 500;
+}
+
 .dropdown-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
     padding: 0.75rem;
     cursor: pointer;
     border-bottom: 1px solid #f3f4f6;
+}
+
+.dropdown-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 0.875rem;
+}
+
+.user-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.user-separator {
+    color: #d1d5db;
+}
+
+.user-roles {
+    font-weight: 500;
+    text-transform: capitalize;
 }
 
 .dropdown-empty {
@@ -294,13 +342,6 @@ button.dropdown-trigger {
 
 .dropdown-item:hover {
     background: #f9fafb;
-}
-
-.dropdown-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    margin: 0;
 }
 
 .task-list {
