@@ -17,6 +17,8 @@ export class TaskController {
       const search = req.query.search as string;
       const status = req.query.status as string;
       const assigneeId = req.query.assigneeId as string;
+      const sortBy = (req.query.sortBy as string) || "createdAt";
+      const sortOrder = (req.query.sortOrder as string) || "DESC";
 
       const queryBuilder = this.taskRepository
         .createQueryBuilder("task")
@@ -42,8 +44,15 @@ export class TaskController {
 
       const totalCount = await queryBuilder.getCount();
 
+      const validSortFields = ["createdAt", "title", "status"];
+      const validSortOrders = ["ASC", "DESC"];
+      const sortField = validSortFields.includes(sortBy) ? sortBy : "createdAt";
+      const order = validSortOrders.includes(sortOrder.toUpperCase())
+        ? (sortOrder.toUpperCase() as "ASC" | "DESC")
+        : "DESC";
+
       const tasks = await queryBuilder
-        .orderBy("task.createdAt", "DESC")
+        .orderBy(`task.${sortField}`, order)
         .skip(offset)
         .take(limit)
         .getMany();
