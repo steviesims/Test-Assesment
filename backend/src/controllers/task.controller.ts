@@ -10,6 +10,26 @@ export class TaskController {
 
   list = async (req: Request, res: Response) => {
     try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get user with roles to determine visibility
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ["roles"],
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const userRoles = user.roles.map((role) => role.name);
+      const isAdmin = userRoles.includes("admin");
+      const isManager = userRoles.includes("manager");
+
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
@@ -27,6 +47,14 @@ export class TaskController {
         .leftJoinAndSelect("task.assignees", "assignees")
         .leftJoinAndSelect("task.attachments", "attachments");
 
+      // Role-based visibility: Regular users only see tasks they're involved in
+      if (!isAdmin && !isManager) {
+        queryBuilder.andWhere(
+          "(task.ownerId = :userId OR assignees.id = :userId)",
+          { userId }
+        );
+      }
+
       if (search) {
         queryBuilder.andWhere(
           "(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))",
@@ -43,8 +71,7 @@ export class TaskController {
         queryBuilder.andWhere("assignees.id = :assigneeId", { assigneeId });
       }
 
-      if (myTasks === "true" && req.user?.userId) {
-        const userId = req.user.userId;
+      if (myTasks === "true") {
         queryBuilder.andWhere(
           "(task.ownerId = :userId OR assignees.id = :userId)",
           { userId }
