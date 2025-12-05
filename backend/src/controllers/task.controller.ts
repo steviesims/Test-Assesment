@@ -17,6 +17,7 @@ export class TaskController {
       const search = req.query.search as string;
       const status = req.query.status as string;
       const assigneeId = req.query.assigneeId as string;
+      const myTasks = req.query.myTasks as string;
       const sortBy = (req.query.sortBy as string) || "createdAt";
       const sortOrder = (req.query.sortOrder as string) || "DESC";
 
@@ -40,6 +41,14 @@ export class TaskController {
 
       if (assigneeId) {
         queryBuilder.andWhere("assignees.id = :assigneeId", { assigneeId });
+      }
+
+      if (myTasks === "true" && req.user?.userId) {
+        const userId = req.user.userId;
+        queryBuilder.andWhere(
+          "(task.ownerId = :userId OR assignees.id = :userId)",
+          { userId }
+        );
       }
 
       const totalCount = await queryBuilder.getCount();
