@@ -17,7 +17,7 @@ const defaultTask: TaskInput = {
   assigneeIds: [],
 };
 
-const statusOptions: TaskStatus[] = ["todo", "in_progress", "done"];
+export const statusOptions: TaskStatus[] = ["todo", "in_progress", "done"];
 
 export const TaskForm = ({
   initialValue,

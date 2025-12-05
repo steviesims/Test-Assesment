@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, deleteTask, fetchTasks, updateTask } from "../api/tasks";
-import { Task, TaskInput } from "../types/task";
-import { TaskForm } from "../components/TaskForm";
+import { Task, TaskInput, TaskStatus } from "../types/task";
+import { statusOptions, TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { useAuth } from "../hooks/useAuth";
 import { fetchUsers } from "../api/users";
@@ -13,6 +13,7 @@ export const TasksPage = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks"],
@@ -69,6 +70,13 @@ export const TasksPage = () => {
       );
     }
 
+    // Filter by status
+    if (selectedStatuses.length > 0) {
+      filtered = filtered.filter((task) =>
+        selectedStatuses.includes(task.status)
+      );
+    }
+
     // Filter by assignee
     if (selectedAssigneeId) {
       filtered = filtered.filter((task) =>
@@ -77,7 +85,7 @@ export const TasksPage = () => {
     }
 
     return filtered;
-  }, [tasks, searchQuery, selectedAssigneeId]);
+  }, [tasks, searchQuery, selectedStatuses, selectedAssigneeId]);
 
   return (
     <div className="tasks-page">
@@ -92,6 +100,29 @@ export const TasksPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+        </div>
+        <div className="form-group">
+          <label>Filter by Status</label>
+          <div>
+            {statusOptions.map((status) => (
+              <label key={status}>
+                <input
+                  type="checkbox"
+                  checked={selectedStatuses.includes(status)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedStatuses([...selectedStatuses, status]);
+                    } else {
+                      setSelectedStatuses(
+                        selectedStatuses.filter((s) => s !== status)
+                      );
+                    }
+                  }}
+                />
+                <span>{status.replace("_", " ")}</span>
+              </label>
+            ))}
+          </div>
         </div>
         {!!isLoadingUsers && <div className="form-group">Loading Users</div>}
         {!isLoadingUsers && (
