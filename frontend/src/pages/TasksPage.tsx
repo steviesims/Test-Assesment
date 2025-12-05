@@ -1,22 +1,87 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, deleteTask, fetchTasks, updateTask } from "../api/tasks";
-import { Task, TaskInput } from "../types/task";
-import { TaskForm } from "../components/TaskForm";
+import {
+  Task,
+  TaskInput,
+  TaskStatus,
+  SortField,
+  SortOrder,
+} from "../types/task";
+import { statusOptions, TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { useAuth } from "../hooks/useAuth";
 import { fetchUsers } from "../api/users";
+import { PAGE_START, PAGE_SIZE, STORAGE_KEY } from "../constants";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { TaskFilterOptions } from "../types/task";
 
 export const TasksPage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
 
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: fetchTasks,
+  const [
+    {
+      query,
+      status,
+      assigneeIds,
+      showMyTask,
+      sortBy: savedSortBy,
+      sortOrder: savedSortOrder,
+    },
+    saveFilterOptions,
+  ] = useLocalStorage<TaskFilterOptions>(STORAGE_KEY, {
+    query: "",
+    status: [],
+    assigneeIds: "",
+    showMyTask: false,
+    sortBy: "createdAt",
+    sortOrder: "DESC",
   });
+
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>(
+    assigneeIds || ""
+  );
+  const [searchQuery, setSearchQuery] = useState<string>(query || "");
+  const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>(
+    status || []
+  );
+  const [showMyTasks, setShowMyTasks] = useState<boolean>(showMyTask || false);
+  const [currentPage, setCurrentPage] = useState<number>(PAGE_START);
+  const [sortBy, setSortBy] = useState<SortField>(savedSortBy || "createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>(
+    savedSortOrder || "DESC"
+  );
+
+  const { data: tasksResponse, isLoading } = useQuery({
+    queryKey: [
+      "tasks",
+      currentPage,
+      PAGE_SIZE,
+      searchQuery,
+      selectedStatuses,
+      selectedAssigneeId,
+      showMyTasks,
+      sortBy,
+      sortOrder,
+    ],
+    queryFn: () =>
+      fetchTasks({
+        page: currentPage,
+        limit: PAGE_SIZE,
+        search: searchQuery || undefined,
+        status:
+          selectedStatuses.length > 0 ? selectedStatuses.join(",") : undefined,
+        assigneeId: selectedAssigneeId || undefined,
+        myTasks: showMyTasks || undefined,
+        sortBy,
+        sortOrder,
+      }),
+  });
+
+  const tasks = tasksResponse?.data || [];
+  const pagination = tasksResponse?.pagination;
 
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
@@ -55,17 +120,68 @@ export const TasksPage = () => {
     (role) => role === "admin" || role === "manager"
   );
 
-  const filteredTasks = useMemo(() => {
-    if (!selectedAssigneeId) return tasks;
-    return tasks.filter((task) =>
-      task.assignees.some((assignee) => assignee.id === selectedAssigneeId)
-    );
-  }, [tasks, selectedAssigneeId]);
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchQuery, selectedStatuses, selectedAssigneeId, showMyTasks]);
+
+  useEffect(() => {
+    saveFilterOptions({
+      query: searchQuery,
+      status: selectedStatuses,
+      assigneeIds: selectedAssigneeId,
+      showMyTask: showMyTasks,
+      sortBy,
+      sortOrder,
+    });
+  }, [
+    searchQuery,
+    selectedStatuses,
+    selectedAssigneeId,
+    showMyTasks,
+    sortBy,
+    sortOrder,
+  ]);
 
   return (
     <div className="tasks-page">
       <section className="tasks-section">
         <h2>Tasks</h2>
+        <div className="form-group">
+          <label htmlFor="task-search">Search Tasks</label>
+          <input
+            id="task-search"
+            type="text"
+            placeholder="Search by title or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label>Filter by Status</label>
+          <div>
+            {statusOptions.map((status) => (
+              <label key={status}>
+                <input
+                  type="checkbox"
+                  checked={selectedStatuses.includes(status)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedStatuses([...selectedStatuses, status]);
+                    } else {
+                      setSelectedStatuses(
+                        selectedStatuses.filter((s) => s !== status)
+                      );
+                    }
+                  }}
+                />
+                <span>{status.replace("_", " ")}</span>
+              </label>
+            ))}
+          </div>
+        </div>
         {!!isLoadingUsers && <div className="form-group">Loading Users</div>}
         {!isLoadingUsers && (
           <div className="form-group">
@@ -84,17 +200,87 @@ export const TasksPage = () => {
             </select>
           </div>
         )}
+        <div className="form-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={showMyTasks}
+              onChange={(e) => setShowMyTasks(e.target.checked)}
+            />
+            <span>My Tasks Only</span>
+          </label>
+        </div>
+        <div className="form-group">
+          <label htmlFor="sort-by">Sort By</label>
+          <select
+            id="sort-by"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortField)}
+          >
+            <option value="createdAt">Date Created</option>
+            <option value="title">Title</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="sort-order">Sort Order</label>
+          <select
+            id="sort-order"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+          >
+            <option value="DESC">Descending</option>
+            <option value="ASC">Ascending</option>
+          </select>
+        </div>
         {isLoading ? (
           <p>Loading tasks…</p>
         ) : (
-          <TaskList
-            tasks={filteredTasks}
-            currentUserId={user?.id}
-            onEdit={canManage ? (task) => setEditingTask(task) : undefined}
-            onDelete={
-              canManage ? (task) => deleteMutation.mutate(task.id) : undefined
-            }
-          />
+          <>
+            <TaskList
+              tasks={tasks}
+              currentUserId={user?.id}
+              onEdit={canManage ? (task) => setEditingTask(task) : undefined}
+              onDelete={
+                canManage ? (task) => deleteMutation.mutate(task.id) : undefined
+              }
+            />
+            {pagination && (
+              <div className="pagination">
+                <div className="pagination-info">
+                  Showing{" "}
+                  {tasks.length > 0
+                    ? (pagination.currentPage - 1) * PAGE_SIZE + 1
+                    : 0}
+                  -{" "}
+                  {Math.min(
+                    pagination.currentPage * PAGE_SIZE,
+                    pagination.totalCount
+                  )}{" "}
+                  of {pagination.totalCount} tasks
+                </div>
+                <div className="pagination-controls">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={!pagination.hasPreviousPage}
+                  >
+                    Previous
+                  </button>
+                  <span className="pagination-pages">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    disabled={!pagination.hasNextPage}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
       {canManage && (
