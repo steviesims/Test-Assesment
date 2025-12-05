@@ -1,24 +1,58 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTask, deleteTask, fetchTasks, updateTask } from "../api/tasks";
-import { Task, TaskInput, TaskStatus, SortField, SortOrder } from "../types/task";
+import {
+  Task,
+  TaskInput,
+  TaskStatus,
+  SortField,
+  SortOrder,
+} from "../types/task";
 import { statusOptions, TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { useAuth } from "../hooks/useAuth";
 import { fetchUsers } from "../api/users";
-import { PAGE_START, PAGE_SIZE } from "../constants";
+import { PAGE_START, PAGE_SIZE, STORAGE_KEY } from "../constants";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { TaskFilterOptions } from "../types/task";
 
 export const TasksPage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
-  const [showMyTasks, setShowMyTasks] = useState<boolean>(false);
+
+  const [
+    {
+      query,
+      status,
+      assigneeIds,
+      showMyTask,
+      sortBy: savedSortBy,
+      sortOrder: savedSortOrder,
+    },
+    saveFilterOptions,
+  ] = useLocalStorage<TaskFilterOptions>(STORAGE_KEY, {
+    query: "",
+    status: [],
+    assigneeIds: "",
+    showMyTask: false,
+    sortBy: "createdAt",
+    sortOrder: "DESC",
+  });
+
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>(
+    assigneeIds || ""
+  );
+  const [searchQuery, setSearchQuery] = useState<string>(query || "");
+  const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>(
+    status || []
+  );
+  const [showMyTasks, setShowMyTasks] = useState<boolean>(showMyTask || false);
   const [currentPage, setCurrentPage] = useState<number>(PAGE_START);
-  const [sortBy, setSortBy] = useState<SortField>("createdAt");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
+  const [sortBy, setSortBy] = useState<SortField>(savedSortBy || "createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>(
+    savedSortOrder || "DESC"
+  );
 
   const { data: tasksResponse, isLoading } = useQuery({
     queryKey: [
@@ -92,6 +126,24 @@ export const TasksPage = () => {
       setCurrentPage(1);
     }
   }, [searchQuery, selectedStatuses, selectedAssigneeId, showMyTasks]);
+
+  useEffect(() => {
+    saveFilterOptions({
+      query: searchQuery,
+      status: selectedStatuses,
+      assigneeIds: selectedAssigneeId,
+      showMyTask: showMyTasks,
+      sortBy,
+      sortOrder,
+    });
+  }, [
+    searchQuery,
+    selectedStatuses,
+    selectedAssigneeId,
+    showMyTasks,
+    sortBy,
+    sortOrder,
+  ]);
 
   return (
     <div className="tasks-page">
