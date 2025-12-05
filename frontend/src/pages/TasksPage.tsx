@@ -12,7 +12,7 @@ import { statusOptions, TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { useAuth } from "../hooks/useAuth";
 import { fetchUsers } from "../api/users";
-import { PAGE_START, PAGE_SIZE, STORAGE_KEY } from "../constants";
+import { PAGE_START, PAGE_SIZE, STORAGE_KEY } from "../utils/constants";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { TaskFilterOptions } from "../types/task";
 
@@ -100,11 +100,25 @@ export const TasksPage = () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setEditingTask(null);
     },
+    onError: (error: any) => {
+      if (error.response?.status === 403) {
+        alert("You don't have permission to edit this task");
+      } else {
+        alert(error.response?.data?.message || "Failed to update task");
+      }
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteTask,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onError: (error: any) => {
+      if (error.response?.status === 403) {
+        alert("You don't have permission to delete this task");
+      } else {
+        alert(error.response?.data?.message || "Failed to delete task");
+      }
+    },
   });
 
   const handleCreate = (payload: TaskInput) => {
@@ -120,10 +134,9 @@ export const TasksPage = () => {
     (role) => role === "admin" || role === "manager"
   );
 
-  // Reset to page 1 when filters change
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
+    if (currentPage !== PAGE_START) {
+      setCurrentPage(PAGE_START);
     }
   }, [searchQuery, selectedStatuses, selectedAssigneeId, showMyTasks]);
 
@@ -239,11 +252,9 @@ export const TasksPage = () => {
           <>
             <TaskList
               tasks={tasks}
-              currentUserId={user?.id}
-              onEdit={canManage ? (task) => setEditingTask(task) : undefined}
-              onDelete={
-                canManage ? (task) => deleteMutation.mutate(task.id) : undefined
-              }
+              currentUser={user || null}
+              onEdit={(task) => setEditingTask(task)}
+              onDelete={(task) => deleteMutation.mutate(task.id)}
             />
             {pagination && (
               <div className="pagination">

@@ -4,7 +4,7 @@ import { Carousel } from "../components/Carousel";
 import { fetchTasks } from "../api/tasks";
 import { uploadFile } from "../api/uploads";
 import { CarouselItem } from "../types/dashboard";
-import { PAGE_START, TASK_LIMITS } from "../constants";
+import { PAGE_START, TASK_LIMITS } from "../utils/constants";
 
 export const DashboardPage = () => {
   const {
