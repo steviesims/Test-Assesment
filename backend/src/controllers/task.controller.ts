@@ -1,34 +1,60 @@
-import { Request, Response } from 'express';
-import { AppDataSource } from '../config/data-source';
-import { Task } from '../entities/Task';
-import { User } from '../entities/User';
-import { In } from 'typeorm';
+import { Request, Response } from "express";
+import { AppDataSource } from "../config/data-source";
+import { Task } from "../entities/Task";
+import { User } from "../entities/User";
+import { In } from "typeorm";
 
 export class TaskController {
   private taskRepository = AppDataSource.getRepository(Task);
   private userRepository = AppDataSource.getRepository(User);
 
-  list = async (_req: Request, res: Response) => {
+  list = async (req: Request, res: Response) => {
     try {
-      const tasks = await this.taskRepository.find();
-      return res.json(tasks);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+      const totalCount = await this.taskRepository.count();
+
+      const tasks = await this.taskRepository.find({
+        skip: offset,
+        take: limit,
+        order: { createdAt: "DESC" },
+      });
+
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasNextPage = page < totalPages;
+      const hasPreviousPage = page > 1;
+
+      return res.json({
+        data: tasks,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          limit,
+          hasNextPage,
+          hasPreviousPage,
+        },
+      });
     } catch (error) {
-      return res.status(500).json({ message: 'Failed to fetch tasks' });
+      return res.status(500).json({ message: "Failed to fetch tasks" });
     }
   };
 
   create = async (req: Request, res: Response) => {
-    const { title, description, status = 'todo', assigneeIds = [] } = req.body;
+    const { title, description, status = "todo", assigneeIds = [] } = req.body;
     const ownerId = req.user?.userId;
 
     try {
       if (!ownerId) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const owner = await this.userRepository.findOne({ where: { id: ownerId } });
+      const owner = await this.userRepository.findOne({
+        where: { id: ownerId },
+      });
       if (!owner) {
-        return res.status(404).json({ message: 'Owner not found' });
+        return res.status(404).json({ message: "Owner not found" });
       }
 
       const assignees = assigneeIds.length
@@ -46,7 +72,7 @@ export class TaskController {
       const saved = await this.taskRepository.save(task);
       return res.status(201).json(saved);
     } catch (error) {
-      return res.status(500).json({ message: 'Failed to create task' });
+      return res.status(500).json({ message: "Failed to create task" });
     }
   };
 
@@ -56,12 +82,12 @@ export class TaskController {
 
     try {
       if (!taskId) {
-        return res.status(400).json({ message: 'Task id is required' });
+        return res.status(400).json({ message: "Task id is required" });
       }
 
       const task = await this.taskRepository.findOne({ where: { id: taskId } });
       if (!task) {
-        return res.status(404).json({ message: 'Task not found' });
+        return res.status(404).json({ message: "Task not found" });
       }
 
       if (title !== undefined) task.title = title;
@@ -77,7 +103,7 @@ export class TaskController {
       const updated = await this.taskRepository.save(task);
       return res.json(updated);
     } catch (error) {
-      return res.status(500).json({ message: 'Failed to update task' });
+      return res.status(500).json({ message: "Failed to update task" });
     }
   };
 
@@ -86,19 +112,18 @@ export class TaskController {
 
     try {
       if (!taskId) {
-        return res.status(400).json({ message: 'Task id is required' });
+        return res.status(400).json({ message: "Task id is required" });
       }
 
       const task = await this.taskRepository.findOne({ where: { id: taskId } });
       if (!task) {
-        return res.status(404).json({ message: 'Task not found' });
+        return res.status(404).json({ message: "Task not found" });
       }
 
       await this.taskRepository.remove(task);
       return res.status(204).send();
     } catch (error) {
-      return res.status(500).json({ message: 'Failed to delete task' });
+      return res.status(500).json({ message: "Failed to delete task" });
     }
   };
 }
-
