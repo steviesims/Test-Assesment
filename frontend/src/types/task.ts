@@ -28,3 +28,17 @@ export type TaskInput = {
   assigneeIds?: string[];
 };
 
+export type PaginationMeta = {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: PaginationMeta;
+};
+
