@@ -30,6 +30,7 @@ export const TaskForm = ({
 
   const [form, setForm] = useState<TaskInput>(computedInitialValue);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
@@ -40,6 +41,17 @@ export const TaskForm = ({
     () => users.filter(({ id }) => form.assigneeIds?.includes(id)),
     [users, form]
   );
+
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery) return users;
+    const query = searchQuery.toLowerCase();
+    return users.filter(
+      (user) =>
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+    );
+  }, [users, searchQuery]);
 
   useEffect(() => {
     setForm(computedInitialValue);
@@ -137,16 +149,31 @@ export const TaskForm = ({
             )}
             {!isLoading && !!users.length && (
               <div className="dropdown-content">
-                {users.map((user) => (
-                  <label key={user.id} className="dropdown-item">
-                    <input
-                      type="checkbox"
-                      checked={form.assigneeIds?.includes(user.id) ?? false}
-                      onChange={() => handleAssigneeToggle(user.id)}
-                    />
-                    {user.firstName} {user.lastName} - {user.email}
-                  </label>
-                ))}
+                <div className="form-group">
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                {!!filteredUsers.length &&
+                  filteredUsers.map((user) => (
+                    <label key={user.id} className="dropdown-item">
+                      <input
+                        type="checkbox"
+                        checked={form.assigneeIds?.includes(user.id) ?? false}
+                        onChange={() => handleAssigneeToggle(user.id)}
+                      />
+                      {user.firstName} {user.lastName} - {user.email}
+                    </label>
+                  ))}
+                {!filteredUsers.length && (
+                  <div className="dropdown-empty">
+                    No users match your search
+                  </div>
+                )}
               </div>
             )}
           </div>

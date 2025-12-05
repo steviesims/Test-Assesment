@@ -249,6 +249,27 @@ button.dropdown-trigger {
     border-color: #d1d5db;
     border-width: 1px;
     border-style: solid;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-content>.form-group {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    margin-bottom: 0;
+}
+
+.dropdown-content>.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.dropdown-content>.form-group input:focus {
+    outline: none;
 }
 
 .dropdown-item {
@@ -258,6 +279,13 @@ button.dropdown-trigger {
     padding: 0.75rem;
     cursor: pointer;
     border-bottom: 1px solid #f3f4f6;
+}
+
+.dropdown-empty {
+    padding: 1rem 0.75rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
 }
 
 .dropdown-item:last-child {
