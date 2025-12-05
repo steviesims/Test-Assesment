@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/User";
-import { Role } from "../entities/Role";
 
 export class UserController {
   private userRepository = AppDataSource.getRepository(User);
-  private roleRepository = AppDataSource.getRepository(Role);
 
   list = async (_req: Request, res: Response) => {
     try {
@@ -17,25 +15,38 @@ export class UserController {
     }
   };
 
-  getRoleById = async (req: Request, res: Response) => {
+  getUserRole = async (req: Request, res: Response) => {
     try {
-      const { roleId } = req.params;
+      const { userId } = req.params;
 
-      if (!roleId) {
-        return res.status(400).json({ message: "Role ID is required" });
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
       }
 
-      const role = await this.roleRepository.findOne({
-        where: { id: roleId },
-        relations: ["users"],
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ["roles"],
       });
 
-      if (!role) {
-        return res.status(404).json({ message: "Role not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
-      return res.status(200).json(role);
+      const { roles } = user;
+
+      if (!roles || roles.length === 0) {
+        return res.status(404).json({ message: "User has no role assigned" });
+      }
+
+      const role = roles[0];
+      if (!role) {
+        return res.status(404).json({ message: "User has no role assigned" });
+      }
+
+      const roleName = role.name;
+
+      return res.status(200).json({ role: roleName });
     } catch (error) {
-      return res.status(500).json({ message: "Failed to fetch role" });
+      return res.status(500).json({ message: "Failed to fetch user role" });
     }
   };
 }
